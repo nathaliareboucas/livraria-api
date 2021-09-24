@@ -1,5 +1,9 @@
 package br.com.nathaliareboucas.livrariaapi.resources;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.BDDMockito;
@@ -57,6 +61,20 @@ public class LivroResourceTest {
 			.andExpect(MockMvcResultMatchers.jsonPath("titulo").value(livroDTO.getTitulo()))
 			.andExpect(MockMvcResultMatchers.jsonPath("autor").value(livroDTO.getAutor()))
 			.andExpect(MockMvcResultMatchers.jsonPath("isbn").value(livroDTO.getIsbn()));
+	}
+	
+	@Test
+	public void deveLancarErroValidacaoDadosInsuficientes() throws Exception {
+		String json = new ObjectMapper().writeValueAsString(new LivroDTO());
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON)
+			.content(json);
+		
+		mockMvc.perform(request)
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("errors", Matchers.hasSize(3)));
 	}
 	
 }

@@ -2,6 +2,8 @@ package br.com.nathaliareboucas.livrariaapi.resources;
 
 import java.net.URI;
 
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +30,7 @@ public class LivroResource {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<LivroDTO> criar(@RequestBody LivroDTO livroDTO) {	
+	public ResponseEntity<LivroDTO> criar(@RequestBody @Valid LivroDTO livroDTO) {	
 		final Livro livroSalvo = livroService.salvar(LivroConverter.toEntity(livroDTO));
 		
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
