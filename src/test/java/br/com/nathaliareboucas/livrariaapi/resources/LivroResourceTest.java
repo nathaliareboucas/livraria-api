@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.nathaliareboucas.livrariaapi.dto.LivroDTO;
+import br.com.nathaliareboucas.livrariaapi.exceptions.NegocioException;
 import br.com.nathaliareboucas.livrariaapi.model.entities.Livro;
 import br.com.nathaliareboucas.livrariaapi.services.LivroService;
 
@@ -43,7 +44,7 @@ public class LivroResourceTest {
 	@Test
 	public void deveCriarUmLivro() throws Exception {
 	
-		final LivroDTO livroDTO = LivroDTO.builder().titulo("Meu Livro").autor("Autor").isbn("A123456").build();
+		final LivroDTO livroDTO = criarNovoLivroDTO();
 		final Livro livroSalvo = Livro.builder().id(1L).titulo("Meu Livro").autor("Autor").isbn("A123456").build();
 		
 		BDDMockito.given(livroService.salvar(Mockito.any(Livro.class))).willReturn(livroSalvo);
@@ -75,6 +76,30 @@ public class LivroResourceTest {
 		mockMvc.perform(request)
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("errors", Matchers.hasSize(3)));
+	}
+	
+	@Test
+	public void naoDeveCriarLivroComIsbnExistente() throws Exception {
+		LivroDTO livroDTO = criarNovoLivroDTO();
+		String json = new ObjectMapper().writeValueAsString(livroDTO);
+		String mensagemErro = "ISBN já cadastrado";
+
+		BDDMockito.given(livroService.salvar(Mockito.any(Livro.class))).willThrow(new NegocioException(mensagemErro));		
+
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(json);
+		
+		mockMvc.perform(request)
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("errors", Matchers.hasSize(1)))
+			.andExpect(jsonPath("errors[0]").value(mensagemErro));
+		
+	}
+	
+	private LivroDTO criarNovoLivroDTO() {
+		return LivroDTO.builder().titulo("Meu Livro").autor("Autor").isbn("A123456").build();
 	}
 	
 }
