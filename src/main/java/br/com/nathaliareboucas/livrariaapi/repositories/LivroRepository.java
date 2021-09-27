@@ -7,5 +7,7 @@ import br.com.nathaliareboucas.livrariaapi.model.entities.Livro;
 
 @Repository
 public interface LivroRepository extends JpaRepository<Livro, Long>{
+	
+	boolean existsByIsbn(String isbn);
 
 }

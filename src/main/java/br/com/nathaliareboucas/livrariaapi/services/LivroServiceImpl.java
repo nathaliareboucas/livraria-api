@@ -2,6 +2,7 @@ package br.com.nathaliareboucas.livrariaapi.services;
 
 import org.springframework.stereotype.Service;
 
+import br.com.nathaliareboucas.livrariaapi.exceptions.NegocioException;
 import br.com.nathaliareboucas.livrariaapi.model.entities.Livro;
 import br.com.nathaliareboucas.livrariaapi.repositories.LivroRepository;
 
@@ -16,6 +17,12 @@ public class LivroServiceImpl implements LivroService {
 
 	@Override
 	public Livro salvar(Livro livro) {
+		boolean isbnExistente = livroRepository.existsByIsbn(livro.getIsbn());
+		
+		if (isbnExistente) {
+			throw new NegocioException("ISBN já cadastrado");
+		}
+		
 		return livroRepository.save(livro);
 	}
 
