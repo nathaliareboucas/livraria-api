@@ -3,6 +3,8 @@ package br.com.nathaliareboucas.livrariaapi.resources;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Optional;
+
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,6 +98,24 @@ public class LivroResourceTest {
 			.andExpect(jsonPath("errors", Matchers.hasSize(1)))
 			.andExpect(jsonPath("errors[0]").value(mensagemErro));
 		
+	}
+	
+	@Test
+	public void deveRecuperarLivroPorId() throws Exception {
+		Long id = 1L;
+		Livro livroRetornado = Livro.builder().id(id).titulo("Livro teste").autor("Autor teste").isbn("123").build();
+		
+		BDDMockito.given(livroService.getById(id)).willReturn(Optional.of(livroRetornado));
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+id))
+			.accept(MediaType.APPLICATION_JSON);
+				
+		mockMvc.perform(request)
+			.andExpect(status().isOk())
+			.andExpect(MockMvcResultMatchers.jsonPath("id").value(1L))
+			.andExpect(MockMvcResultMatchers.jsonPath("titulo").value(livroRetornado.getTitulo()))
+			.andExpect(MockMvcResultMatchers.jsonPath("autor").value(livroRetornado.getAutor()))
+			.andExpect(MockMvcResultMatchers.jsonPath("isbn").value(livroRetornado.getIsbn()));
 	}
 	
 	private LivroDTO criarNovoLivroDTO() {

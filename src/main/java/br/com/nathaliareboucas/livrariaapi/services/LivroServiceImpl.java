@@ -1,5 +1,7 @@
 package br.com.nathaliareboucas.livrariaapi.services;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import br.com.nathaliareboucas.livrariaapi.exceptions.NegocioException;
@@ -24,6 +26,12 @@ public class LivroServiceImpl implements LivroService {
 		}
 		
 		return livroRepository.save(livro);
+	}
+
+	@Override
+	public Optional<Livro> getById(Long id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
