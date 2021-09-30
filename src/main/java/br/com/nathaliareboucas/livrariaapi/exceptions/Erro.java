@@ -21,5 +21,9 @@ public class Erro {
 	public Erro(NegocioException ex) {
 		this.errors = Arrays.asList(ex.getMessage());
 	}
+	
+	public Erro(List<String> mensagensErros) {
+		this.errors = mensagensErros;
+	}
 
 }

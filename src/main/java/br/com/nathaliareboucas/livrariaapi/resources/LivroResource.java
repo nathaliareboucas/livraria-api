@@ -1,7 +1,6 @@
 package br.com.nathaliareboucas.livrariaapi.resources;
 
 import java.net.URI;
-import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -44,8 +43,8 @@ public class LivroResource {
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<LivroDTO> buscar(@PathVariable Long id) {
-		Optional<Livro> livroExistente = livroService.getById(id);		
-		return ResponseEntity.ok(LivroConverter.toDTO(livroExistente.get()));
+		Livro livro = livroService.getById(id);		
+		return ResponseEntity.ok(LivroConverter.toDTO(livro));
 	}
 
 }

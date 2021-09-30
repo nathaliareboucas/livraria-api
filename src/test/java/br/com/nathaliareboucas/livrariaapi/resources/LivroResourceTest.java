@@ -3,7 +3,7 @@ package br.com.nathaliareboucas.livrariaapi.resources;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -105,7 +105,7 @@ public class LivroResourceTest {
 		Long id = 1L;
 		Livro livroRetornado = Livro.builder().id(id).titulo("Livro teste").autor("Autor teste").isbn("123").build();
 		
-		BDDMockito.given(livroService.getById(id)).willReturn(Optional.of(livroRetornado));
+		BDDMockito.given(livroService.getById(id)).willReturn(livroRetornado);
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+id))
 			.accept(MediaType.APPLICATION_JSON);
@@ -120,6 +120,23 @@ public class LivroResourceTest {
 	
 	private LivroDTO criarNovoLivroDTO() {
 		return LivroDTO.builder().titulo("Meu Livro").autor("Autor").isbn("A123456").build();
+	}
+	
+	@Test
+	public void deveRetornarErroLivroNaoEncontrado() throws Exception {
+		Long id = 1L;
+		String mensagemErro = "Recurso não encontrado";
+
+		BDDMockito.given(livroService.getById(id)).willThrow(new EntityNotFoundException());
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+id))
+			.accept(MediaType.APPLICATION_JSON);
+						
+		
+		mockMvc.perform(request)
+			.andExpect(status().isNotFound())
+			.andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
+			.andExpect(jsonPath("errors[0]").value(mensagemErro));
 	}
 	
 }
