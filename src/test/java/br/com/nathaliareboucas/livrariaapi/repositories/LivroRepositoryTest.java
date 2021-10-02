@@ -2,6 +2,8 @@ package br.com.nathaliareboucas.livrariaapi.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,5 +44,30 @@ public class LivroRepositoryTest {
 		
 		assertThat(livroExistente).isFalse();		
 	} 
+	
+	@Test
+	public void deveRecuperarLivroPorId() {
+		Livro livro = Livro.builder().titulo("Meu livro").autor("Autor").isbn("123").build();
+		Livro livroSalvo = entityManager.persist(livro);
+		
+		Livro livroRecuperado = livroRepository.getById(livroSalvo.getId());
+		
+		assertThat(livroRecuperado).isNotNull();
+		assertThat(livro.getId()).isNotNull();
+		assertThat(livroRecuperado.getTitulo()).isEqualTo(livro.getTitulo());
+		assertThat(livroRecuperado.getAutor()).isEqualTo(livro.getAutor());
+		assertThat(livroRecuperado.getIsbn()).isEqualTo(livro.getIsbn());
+	}
+	
+	@Test 
+	public void deveLancarExcecaoAoRecuperarLivroPorId() {
+		try {
+			livroRepository.getById(1L);
+		} catch (Exception excecao) {
+			assertThat(excecao)
+				.isInstanceOf(EntityNotFoundException.class);
+		}
+		
+	}
 
 }
