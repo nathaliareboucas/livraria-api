@@ -8,4 +8,6 @@ public interface LivroService {
 
 	Livro getById(Long id);
 
+	void excluir(Long id);
+
 }

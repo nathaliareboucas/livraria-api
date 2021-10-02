@@ -43,16 +43,22 @@ public class LivroResourceTest {
 	@MockBean
 	LivroService livroService;
 	
-	@Test
-	public void deveCriarUmLivro() throws Exception {
+	private LivroDTO criarNovoLivroDTO() {
+		return LivroDTO.builder().titulo("Meu Livro").autor("Autor").isbn("A123456").build();
+	}
 	
+	private Livro criarNovoLivroComId() {
+		return Livro.builder().id(1L).titulo("Meu Livro").autor("Autor").isbn("A123456").build();
+	}
+	
+	@Test
+	public void deveCriarUmLivro() throws Exception {	
 		final LivroDTO livroDTO = criarNovoLivroDTO();
-		final Livro livroSalvo = Livro.builder().id(1L).titulo("Meu Livro").autor("Autor").isbn("A123456").build();
+		final Livro livroSalvo = criarNovoLivroComId();
 		
 		BDDMockito.given(livroService.salvar(Mockito.any(Livro.class))).willReturn(livroSalvo);
 		String json = new ObjectMapper().writeValueAsString(livroDTO);
-		
-		
+				
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
 			.contentType(MediaType.APPLICATION_JSON)
 			.accept(MediaType.APPLICATION_JSON)
@@ -102,12 +108,10 @@ public class LivroResourceTest {
 	
 	@Test
 	public void deveRecuperarLivroPorId() throws Exception {
-		Long id = 1L;
-		Livro livroRetornado = Livro.builder().id(id).titulo("Livro teste").autor("Autor teste").isbn("123").build();
+		Livro livroRetornado = criarNovoLivroComId();		
+		BDDMockito.given(livroService.getById(1L)).willReturn(livroRetornado);
 		
-		BDDMockito.given(livroService.getById(id)).willReturn(livroRetornado);
-		
-		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+id))
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+1L))
 			.accept(MediaType.APPLICATION_JSON);
 				
 		mockMvc.perform(request)
@@ -118,25 +122,43 @@ public class LivroResourceTest {
 			.andExpect(MockMvcResultMatchers.jsonPath("isbn").value(livroRetornado.getIsbn()));
 	}
 	
-	private LivroDTO criarNovoLivroDTO() {
-		return LivroDTO.builder().titulo("Meu Livro").autor("Autor").isbn("A123456").build();
-	}
-	
 	@Test
 	public void deveRetornarErroLivroNaoEncontrado() throws Exception {
-		Long id = 1L;
 		String mensagemErro = "Recurso não encontrado";
-
-		BDDMockito.given(livroService.getById(id)).willThrow(new EntityNotFoundException());
+		BDDMockito.given(livroService.getById(BDDMockito.anyLong())).willThrow(new EntityNotFoundException());
 		
-		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+id))
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+1L))
 			.accept(MediaType.APPLICATION_JSON);
-						
-		
+								
 		mockMvc.perform(request)
 			.andExpect(status().isNotFound())
 			.andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
 			.andExpect(jsonPath("errors[0]").value(mensagemErro));
+	}
+	
+	@Test
+	public void deveExcluirLivro() throws Exception {
+		Livro livro = criarNovoLivroComId();
+		BDDMockito.given(livroService.getById(BDDMockito.anyLong())).willReturn(livro);
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(LIVROS_API_V1.concat("/"+1L))
+			.accept(MediaType.APPLICATION_JSON);
+		
+		mockMvc.perform(request)
+			.andExpect(MockMvcResultMatchers.status().isNoContent());		
+	}
+	
+	@Test
+	public void deveRetornarErroLivroNaoEncontradoAoTentarExcluir() throws Exception {		
+		BDDMockito.willThrow(new EntityNotFoundException()).given(livroService).excluir(BDDMockito.anyLong());
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(LIVROS_API_V1.concat("/"+1L))
+			.accept(MediaType.APPLICATION_JSON);
+		
+		mockMvc.perform(request)
+			.andExpect(MockMvcResultMatchers.status().isNotFound())
+			.andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
+			.andExpect(MockMvcResultMatchers.jsonPath("errors[0]").value("Recurso não encontrado"));
 	}
 	
 }

@@ -31,4 +31,10 @@ public class LivroServiceImpl implements LivroService {
 		return livroRepository.getById(id);
 	}
 
+	@Override
+	public void excluir(Long id) {
+		Livro livroExcluir = getById(id);
+		livroRepository.delete(livroExcluir);		
+	}
+
 }
