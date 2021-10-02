@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -52,6 +53,12 @@ public class LivroResource {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void excluir(@PathVariable Long id) {
 		livroService.excluir(id);
+	}
+	
+	@PutMapping()
+	public ResponseEntity<LivroDTO> atualizar(@RequestBody LivroDTO livroDTO) {
+		Livro livroAtualizado = livroService.atualizar(LivroConverter.toEntity(livroDTO));
+		return ResponseEntity.ok(LivroConverter.toDTO(livroAtualizado));
 	}
 
 }

@@ -37,4 +37,11 @@ public class LivroServiceImpl implements LivroService {
 		livroRepository.delete(livroExcluir);		
 	}
 
+	@Override
+	public Livro atualizar(Livro livro) {
+		Livro livroExistente = getById(livro.getId());
+		livroExistente.atualizaPropriedades(livro);
+		return livroRepository.save(livroExistente);
+	}
+
 }

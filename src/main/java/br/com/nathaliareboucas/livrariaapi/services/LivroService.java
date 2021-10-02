@@ -10,4 +10,6 @@ public interface LivroService {
 
 	void excluir(Long id);
 
+	Livro atualizar(Livro livro);
+
 }

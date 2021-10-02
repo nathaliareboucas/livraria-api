@@ -1,26 +1,28 @@
 package br.com.nathaliareboucas.livrariaapi.resources;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -56,20 +58,20 @@ public class LivroResourceTest {
 		final LivroDTO livroDTO = criarNovoLivroDTO();
 		final Livro livroSalvo = criarNovoLivroComId();
 		
-		BDDMockito.given(livroService.salvar(Mockito.any(Livro.class))).willReturn(livroSalvo);
+		given(livroService.salvar(Mockito.any(Livro.class))).willReturn(livroSalvo);
 		String json = new ObjectMapper().writeValueAsString(livroDTO);
 				
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
-			.contentType(MediaType.APPLICATION_JSON)
-			.accept(MediaType.APPLICATION_JSON)
+			.contentType(APPLICATION_JSON)
+			.accept(APPLICATION_JSON)
 			.content(json);
 		
 		mockMvc.perform(request)
-			.andExpect(MockMvcResultMatchers.status().isCreated())
-			.andExpect(MockMvcResultMatchers.jsonPath("id").value(1L))
-			.andExpect(MockMvcResultMatchers.jsonPath("titulo").value(livroDTO.getTitulo()))
-			.andExpect(MockMvcResultMatchers.jsonPath("autor").value(livroDTO.getAutor()))
-			.andExpect(MockMvcResultMatchers.jsonPath("isbn").value(livroDTO.getIsbn()));
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("id").value(1L))
+			.andExpect(jsonPath("titulo").value(livroDTO.getTitulo()))
+			.andExpect(jsonPath("autor").value(livroDTO.getAutor()))
+			.andExpect(jsonPath("isbn").value(livroDTO.getIsbn()));
 	}
 	
 	@Test
@@ -77,13 +79,13 @@ public class LivroResourceTest {
 		String json = new ObjectMapper().writeValueAsString(new LivroDTO());
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
-			.contentType(MediaType.APPLICATION_JSON)
-			.accept(MediaType.APPLICATION_JSON)
+			.contentType(APPLICATION_JSON)
+			.accept(APPLICATION_JSON)
 			.content(json);
 		
 		mockMvc.perform(request)
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("errors", Matchers.hasSize(3)));
+			.andExpect(jsonPath("errors", hasSize(3)));
 	}
 	
 	@Test
@@ -92,16 +94,16 @@ public class LivroResourceTest {
 		String json = new ObjectMapper().writeValueAsString(livroDTO);
 		String mensagemErro = "ISBN já cadastrado";
 
-		BDDMockito.given(livroService.salvar(Mockito.any(Livro.class))).willThrow(new NegocioException(mensagemErro));		
+		given(livroService.salvar(Mockito.any(Livro.class))).willThrow(new NegocioException(mensagemErro));		
 
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.accept(APPLICATION_JSON)
 				.content(json);
 		
 		mockMvc.perform(request)
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("errors", Matchers.hasSize(1)))
+			.andExpect(jsonPath("errors", hasSize(1)))
 			.andExpect(jsonPath("errors[0]").value(mensagemErro));
 		
 	}
@@ -109,56 +111,97 @@ public class LivroResourceTest {
 	@Test
 	public void deveRecuperarLivroPorId() throws Exception {
 		Livro livroRetornado = criarNovoLivroComId();		
-		BDDMockito.given(livroService.getById(1L)).willReturn(livroRetornado);
+		given(livroService.getById(1L)).willReturn(livroRetornado);
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+1L))
-			.accept(MediaType.APPLICATION_JSON);
+			.accept(APPLICATION_JSON);
 				
 		mockMvc.perform(request)
 			.andExpect(status().isOk())
-			.andExpect(MockMvcResultMatchers.jsonPath("id").value(1L))
-			.andExpect(MockMvcResultMatchers.jsonPath("titulo").value(livroRetornado.getTitulo()))
-			.andExpect(MockMvcResultMatchers.jsonPath("autor").value(livroRetornado.getAutor()))
-			.andExpect(MockMvcResultMatchers.jsonPath("isbn").value(livroRetornado.getIsbn()));
+			.andExpect(jsonPath("id").value(1L))
+			.andExpect(jsonPath("titulo").value(livroRetornado.getTitulo()))
+			.andExpect(jsonPath("autor").value(livroRetornado.getAutor()))
+			.andExpect(jsonPath("isbn").value(livroRetornado.getIsbn()));
 	}
 	
 	@Test
 	public void deveRetornarErroLivroNaoEncontrado() throws Exception {
 		String mensagemErro = "Recurso não encontrado";
-		BDDMockito.given(livroService.getById(BDDMockito.anyLong())).willThrow(new EntityNotFoundException());
+		given(livroService.getById(anyLong())).willThrow(new EntityNotFoundException());
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(LIVROS_API_V1.concat("/"+1L))
-			.accept(MediaType.APPLICATION_JSON);
+			.accept(APPLICATION_JSON);
 								
 		mockMvc.perform(request)
 			.andExpect(status().isNotFound())
-			.andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
+			.andExpect(jsonPath("errors", hasSize(1)))
 			.andExpect(jsonPath("errors[0]").value(mensagemErro));
 	}
 	
 	@Test
 	public void deveExcluirLivro() throws Exception {
 		Livro livro = criarNovoLivroComId();
-		BDDMockito.given(livroService.getById(BDDMockito.anyLong())).willReturn(livro);
+		given(livroService.getById(anyLong())).willReturn(livro);
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(LIVROS_API_V1.concat("/"+1L))
-			.accept(MediaType.APPLICATION_JSON);
+			.accept(APPLICATION_JSON);
 		
 		mockMvc.perform(request)
-			.andExpect(MockMvcResultMatchers.status().isNoContent());		
+			.andExpect(status().isNoContent());		
 	}
 	
 	@Test
 	public void deveRetornarErroLivroNaoEncontradoAoTentarExcluir() throws Exception {		
-		BDDMockito.willThrow(new EntityNotFoundException()).given(livroService).excluir(BDDMockito.anyLong());
+		willThrow(new EntityNotFoundException()).given(livroService).excluir(anyLong());
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(LIVROS_API_V1.concat("/"+1L))
-			.accept(MediaType.APPLICATION_JSON);
+			.accept(APPLICATION_JSON);
 		
 		mockMvc.perform(request)
-			.andExpect(MockMvcResultMatchers.status().isNotFound())
-			.andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
-			.andExpect(MockMvcResultMatchers.jsonPath("errors[0]").value("Recurso não encontrado"));
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("errors", hasSize(1)))
+			.andExpect(jsonPath("errors[0]").value("Recurso não encontrado"));
+	}
+	
+	@Test
+	public void deveAtualizarUmLivro() throws Exception {
+		LivroDTO livroDTO = criarNovoLivroDTO();
+		livroDTO.setId(1L);
+		Livro livro = criarNovoLivroComId();
+
+		given(livroService.atualizar(any(Livro.class))).willReturn(livro);
+		String json = new ObjectMapper().writeValueAsString(livroDTO);
+				
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(LIVROS_API_V1)
+			.contentType(APPLICATION_JSON)
+			.accept(APPLICATION_JSON)
+			.content(json);
+		
+		mockMvc.perform(request)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("id").value(livroDTO.getId()))
+			.andExpect(jsonPath("titulo").value(livroDTO.getTitulo()))
+			.andExpect(jsonPath("autor").value(livroDTO.getAutor()))
+			.andExpect(jsonPath("isbn").value(livroDTO.getIsbn()));		
+	}
+	
+	@Test
+	public void deveRetornarErroLivroNaoEncontradoAoTentarAtualizar() throws Exception {
+		LivroDTO livroDTO = criarNovoLivroDTO();
+		livroDTO.setId(1L);
+		
+		given(livroService.atualizar(any(Livro.class))).willThrow(new EntityNotFoundException());
+		String json = new ObjectMapper().writeValueAsString(livroDTO);
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(LIVROS_API_V1)
+			.contentType(APPLICATION_JSON)
+			.accept(APPLICATION_JSON)
+			.content(json);
+		
+		mockMvc.perform(request)
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("errors", hasSize(1)))
+			.andExpect(jsonPath("errors[0]").value("Recurso não encontrado"));
 	}
 	
 }
