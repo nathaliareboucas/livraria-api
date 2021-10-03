@@ -75,7 +75,7 @@ public class LivroResourceTest {
 	}
 	
 	@Test
-	public void deveLancarErroValidacaoDadosInsuficientes() throws Exception {
+	public void deveRetornarErroValidacaoDadosInsuficientes() throws Exception {
 		String json = new ObjectMapper().writeValueAsString(new LivroDTO());
 		
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(LIVROS_API_V1)
@@ -89,7 +89,7 @@ public class LivroResourceTest {
 	}
 	
 	@Test
-	public void naoDeveCriarLivroComIsbnExistente() throws Exception {
+	public void deveRetornarErroValidacaoLivroComIsbnExistente() throws Exception {
 		LivroDTO livroDTO = criarNovoLivroDTO();
 		String json = new ObjectMapper().writeValueAsString(livroDTO);
 		String mensagemErro = "ISBN já cadastrado";
@@ -147,7 +147,7 @@ public class LivroResourceTest {
 			.accept(APPLICATION_JSON);
 		
 		mockMvc.perform(request)
-			.andExpect(status().isNoContent());		
+			.andExpect(status().isNoContent());
 	}
 	
 	@Test
