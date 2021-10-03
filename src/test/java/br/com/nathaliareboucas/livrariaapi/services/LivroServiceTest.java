@@ -2,6 +2,11 @@ package br.com.nathaliareboucas.livrariaapi.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.persistence.EntityNotFoundException;
@@ -48,7 +53,7 @@ public class LivroServiceTest {
 	}
 	
 	@Test
-	public void naoDeveSalvarLivroComIsbnExistente() {
+	public void deveLancarExcecaoAoSalvarLivroComIsbnExistente() {
 		final Livro livro = criarLivro();
 		when(livroRepository.existsByIsbn(livro.getIsbn())).thenReturn(true);
 		
@@ -76,13 +81,33 @@ public class LivroServiceTest {
 	}
 	
 	@Test
-	public void deveLancarExcecaoQuandoLivroNaoEncontrado() {
+	public void deveLancarExcecaoQuandoLivroNaoEncontradoPorId() {
 		when(livroRepository.getById(1L)).thenThrow(EntityNotFoundException.class);
 		
 		Throwable excecao = catchThrowable(() -> livroService.getById(1L));
 		
 		assertThat(excecao)
 			.isInstanceOf(EntityNotFoundException.class);
+	}
+	
+	@Test
+	public void deveExcluirLivro() {
+		Livro livro = criarLivroComId();
+		when(livroRepository.getById(1L)).thenReturn(livro);
+		
+		assertDoesNotThrow(() -> livroService.excluir(1L)); 
+		
+		verify(livroRepository, times(1)).delete(livro);
+	}
+	
+	@Test
+	public void deveLancarExcecaoQuandoExcluirLivro() {
+		Livro livro = criarLivroComId();
+		when(livroRepository.getById(1L)).thenThrow(EntityNotFoundException.class);
+		
+		assertThrows(EntityNotFoundException.class, () -> livroService.excluir(1L));
+		
+		verify(livroRepository, never()).delete(livro);
 	}
 
 	private Livro criarLivro() {
