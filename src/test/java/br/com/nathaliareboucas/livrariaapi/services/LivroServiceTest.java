@@ -101,13 +101,38 @@ public class LivroServiceTest {
 	}
 	
 	@Test
-	public void deveLancarExcecaoQuandoExcluirLivro() {
+	public void deveLancarExcecaoQuandoExcluirLivroInexistente() {
 		Livro livro = criarLivroComId();
 		when(livroRepository.getById(1L)).thenThrow(EntityNotFoundException.class);
 		
 		assertThrows(EntityNotFoundException.class, () -> livroService.excluir(1L));
 		
 		verify(livroRepository, never()).delete(livro);
+	}
+	
+	@Test
+	public void deveLancarExcecaoQuandoAtualizarLivroInexistente() {
+		Livro livro = criarLivroComId();
+		when(livroRepository.getById(1L)).thenThrow(EntityNotFoundException.class);
+		
+		assertThrows(EntityNotFoundException.class, () -> livroService.atualizar(livro));
+		
+		verify(livroRepository, never()).save(livro);
+	}
+	
+	@Test
+	public void deveAtualizarLivro() {
+		Livro livro = criarLivroComId();
+		when(livroRepository.getById(1L)).thenReturn(livro);
+		when(livroRepository.save(livro)).thenReturn(livro);
+		
+		Livro livroAtualizado = livroService.atualizar(livro);
+		
+		assertThat(livroAtualizado).isNotNull();
+		assertThat(livroAtualizado.getId()).isEqualTo(livro.getId());
+		assertThat(livroAtualizado.getAutor()).isEqualTo(livro.getAutor());
+		assertThat(livroAtualizado.getTitulo()).isEqualTo(livro.getTitulo());
+		assertThat(livroAtualizado.getIsbn()).isEqualTo(livro.getIsbn());
 	}
 
 	private Livro criarLivro() {
