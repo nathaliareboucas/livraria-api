@@ -25,10 +25,18 @@ public class LivroRepositoryTest {
 	@Autowired
 	LivroRepository livroRepository;
 	
+	public Livro criarLivro() {
+		return Livro.builder().titulo("Livro teste").autor("Autor teste").isbn("123").build();
+	}
+	
+	public Livro criarLivroComId() {
+		return Livro.builder().id(1L).titulo("Livro teste").autor("Autor teste").isbn("123").build();
+	}
+	
 	@Test
 	public void deveRetornarVerdadeiroQuandoExistirLivroComMesmoIsbn() {
 		String isbn = "123";
-		Livro livro = Livro.builder().titulo("Livro teste").autor("Autor teste").isbn("123").build();
+		Livro livro = criarLivro();
 		entityManager.persist(livro);
 		
 		boolean livroExistente = livroRepository.existsByIsbn(isbn);
@@ -47,7 +55,7 @@ public class LivroRepositoryTest {
 	
 	@Test
 	public void deveRecuperarLivroPorId() {
-		Livro livro = Livro.builder().titulo("Meu livro").autor("Autor").isbn("123").build();
+		Livro livro = criarLivro();
 		Livro livroSalvo = entityManager.persist(livro);
 		
 		Livro livroRecuperado = livroRepository.getById(livroSalvo.getId());
@@ -68,6 +76,30 @@ public class LivroRepositoryTest {
 				.isInstanceOf(EntityNotFoundException.class);
 		}
 		
+	}
+	
+	@Test
+	public void deveSalvarUmLivro() {
+		Livro livro = criarLivro();
+		
+		Livro livroSalvo = livroRepository.save(livro);
+		
+		assertThat(livroSalvo).isNotNull();
+		assertThat(livroSalvo.getId()).isNotNull();
+	}
+	
+	@Test
+	public void deveExcluirUmLivro() {
+		Livro livro = criarLivro();
+		entityManager.persist(livro);
+		
+		Livro livroExistente = entityManager.find(Livro.class, livro.getId());
+		
+		livroRepository.delete(livroExistente);
+		
+		Livro livroExcluido = entityManager.find(Livro.class, livro.getId());
+		
+		assertThat(livroExcluido).isNull();
 	}
 
 }
