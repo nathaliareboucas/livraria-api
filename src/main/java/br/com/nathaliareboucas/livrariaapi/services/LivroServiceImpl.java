@@ -1,5 +1,10 @@
 package br.com.nathaliareboucas.livrariaapi.services;
 
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.nathaliareboucas.livrariaapi.exceptions.NegocioException;
@@ -42,6 +47,16 @@ public class LivroServiceImpl implements LivroService {
 		Livro livroExistente = getById(livro.getId());
 		livroExistente.atualizaPropriedades(livro);
 		return livroRepository.save(livroExistente);
+	}
+
+	@Override
+	public Page<Livro> buscar(Livro livro, Pageable page) {
+		Example<Livro> filtro = Example.of(livro, ExampleMatcher.matching()
+				.withIgnoreCase()
+				.withIgnoreNullValues()
+				.withStringMatcher(StringMatcher.CONTAINING));
+		
+		return livroRepository.findAll(filtro, page);
 	}
 
 }

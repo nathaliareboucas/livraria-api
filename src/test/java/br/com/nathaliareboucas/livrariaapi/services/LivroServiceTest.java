@@ -4,10 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -17,6 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import br.com.nathaliareboucas.livrariaapi.exceptions.NegocioException;
@@ -133,6 +140,23 @@ public class LivroServiceTest {
 		assertThat(livroAtualizado.getAutor()).isEqualTo(livro.getAutor());
 		assertThat(livroAtualizado.getTitulo()).isEqualTo(livro.getTitulo());
 		assertThat(livroAtualizado.getIsbn()).isEqualTo(livro.getIsbn());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void devePesquisarLivrosPorFiltros() {
+		Livro livro = criarLivroComId();		
+		List<Livro> livros = List.of(livro);
+		PageRequest pageRequest = PageRequest.of(0, 10);
+		Page<Livro> pageLivros = new PageImpl<Livro>(livros, pageRequest, 1);		
+		when(livroRepository.findAll(any(Example.class), any(PageRequest.class))).thenReturn(pageLivros);
+		
+		Page<Livro> pageLivrosResult = livroService.buscar(livro, pageRequest);
+		
+		assertThat(pageLivrosResult.getTotalElements()).isEqualTo(1);
+		assertThat(pageLivrosResult.getContent()).isEqualTo(livros);
+		assertThat(pageLivrosResult.getPageable().getPageNumber()).isEqualTo(0);
+		assertThat(pageLivrosResult.getPageable().getPageSize()).isEqualTo(10);			
 	}
 
 	private Livro criarLivro() {

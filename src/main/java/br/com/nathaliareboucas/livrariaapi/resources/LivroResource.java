@@ -1,9 +1,14 @@
 package br.com.nathaliareboucas.livrariaapi.resources;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,6 +64,17 @@ public class LivroResource {
 	public ResponseEntity<LivroDTO> atualizar(@RequestBody LivroDTO livroDTO) {
 		Livro livroAtualizado = livroService.atualizar(LivroConverter.toEntity(livroDTO));
 		return ResponseEntity.ok(LivroConverter.toDTO(livroAtualizado));
+	}
+	
+	@GetMapping()
+	public Page<LivroDTO> buscar(LivroDTO livroDTO, Pageable pageRequest) {
+		Page<Livro> pageLivros = livroService.buscar(LivroConverter.toEntity(livroDTO), pageRequest);
+		
+		List<LivroDTO> livrosDTO = pageLivros.getContent().stream()
+			.map(entidade -> LivroConverter.toDTO(entidade))
+			.collect(Collectors.toList());
+		
+		return new PageImpl<LivroDTO>(livrosDTO, pageRequest, pageLivros.getTotalElements());
 	}
 
 }
