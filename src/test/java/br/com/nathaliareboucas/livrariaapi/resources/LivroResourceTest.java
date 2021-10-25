@@ -39,7 +39,7 @@ import br.com.nathaliareboucas.livrariaapi.services.LivroService;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
-@WebMvcTest
+@WebMvcTest(controllers = {LivroResource.class})
 @AutoConfigureMockMvc
 public class LivroResourceTest {
 	
