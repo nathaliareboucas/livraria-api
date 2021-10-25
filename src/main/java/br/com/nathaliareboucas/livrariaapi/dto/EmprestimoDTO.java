@@ -20,10 +20,10 @@ public class EmprestimoDTO {
 	
 	private Long id;
 	
-	@NotNull
+	@NotNull(message = "Livro é obrigatório")
 	private LivroDTO livroDTO;
 	
-	@NotBlank
+	@NotBlank(message = "Cliente é obrigatório")
 	private String nomeCliente;
 	
 	@JsonIgnoreProperties
